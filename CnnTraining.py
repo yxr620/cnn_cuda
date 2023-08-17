@@ -3,8 +3,8 @@
 
 
 # 请提供以下变量
-from setting import FEATURES, PATH_TRAIN_DATA, TARGET_COL, CNN_MODEL_TARGET_PATH, \
-    PATH_TO_SPLITS, RANDOM_SEEDS
+# from setting import FEATURES, PATH_TRAIN_DATA, TARGET_COL, CNN_MODEL_TARGET_PATH, \
+#     PATH_TO_SPLITS, RANDOM_SEEDS
 import os, re
 import numpy as np
 import pandas as pd
