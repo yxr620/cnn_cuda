@@ -6,7 +6,6 @@ from torch.utils.data import DataLoader, Dataset
 import time
 
 # 检查是否有可用的GPU
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class BaseModel(nn.Module):
     def __init__(self):
@@ -42,10 +41,11 @@ class CustomDataset(Dataset):
         return x, y
 
 
-def train(model, train_loader, criterion, optimizer):
+def train(model, train_loader, criterion, optimizer, device):
     model.train()
     train_loss = 0
     for inputs, targets in train_loader:
+        inputs, targets = inputs.to(device), targets.to(device)
         optimizer.zero_grad()
         outputs = model(inputs)
         loss = criterion(outputs, targets)
@@ -55,11 +55,12 @@ def train(model, train_loader, criterion, optimizer):
     return train_loss / len(train_loader)
 
 
-def evaluate(model, val_loader, criterion):
+def evaluate(model, val_loader, criterion, device):
     model.eval()
     val_loss = 0
     with torch.no_grad():
         for inputs, targets in val_loader:
+            inputs, targets = inputs.to(device), targets.to(device)
             outputs = model(inputs)
             loss = criterion(outputs, targets)
             val_loss += loss.item()
@@ -68,8 +69,8 @@ def evaluate(model, val_loader, criterion):
 
 def main():
     # 生成大量的训练数据和标签
-    train_data = torch.randn(10000, 84)
-    train_labels = torch.randn(10000, 1)
+    train_data = torch.randn(1000000, 84)
+    train_labels = torch.randn(1000000, 1)
 
     # 生成大量的验证数据和标签
     val_data = torch.randn(2000, 84)
@@ -78,10 +79,11 @@ def main():
     # 创建数据集和数据加载器
     train_dataset = CustomDataset(train_data, train_labels)
     val_dataset = CustomDataset(val_data, val_labels)
-    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=1024, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=1024, shuffle=False)
 
     # 创建模型实例并将其移动到设备（GPU或CPU）
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = BaseModel().to(device)
 
     # 定义损失函数和优化器
@@ -94,23 +96,21 @@ def main():
     # 在GPU上进行训练和验证
     start_time = time.time()
     for epoch in range(num_epochs):
-        train_loss = train(model, train_loader, criterion, optimizer)
-        val_loss = evaluate(model, val_loader, criterion)
+        train_loss = train(model, train_loader, criterion, optimizer, device)
+        val_loss = evaluate(model, val_loader, criterion, device)
         print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
     gpu_time = time.time() - start_time
 
     # 将模型移动到CPU上
-    model = model.to("cpu")
-
-    # 创建新的数据加载器（在CPU上）
-    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
+    device = torch.device("cpu")
+    model = model.to(device)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # 在CPU上进行训练和验证
     start_time = time.time()
     for epoch in range(num_epochs):
-        train_loss = train(model, train_loader, criterion, optimizer)
-        val_loss = evaluate(model, val_loader, criterion)
+        train_loss = train(model, train_loader, criterion, optimizer, device)
+        val_loss = evaluate(model, val_loader, criterion, device)
         print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
     cpu_time = time.time() - start_time
 
