@@ -3,6 +3,8 @@ from pytorch_tabnet.tab_model import TabNetRegressor
 import numpy as np
 
 device_name = "cuda" if torch.cuda.is_available() else "cpu"
+device_name = "cpu"
+print(device_name)
 # 创建特征和标签的示例数据
 X_train = np.array(torch.randn((100, 84)))
 y_train = np.array(torch.randn((100, 1)))
@@ -17,8 +19,7 @@ y_train = np.array(torch.randn((100, 1)))
 #                        output_dim=16,
 #                        num_decision_steps=1)
 
-# cpu model 
-# model = TabNetRegressor(n_d=17, n_a=17, n_steps=1, gamma=1.5, n_independent=2, n_shared=2, seed=0)
+
 # gpu model
 model = TabNetRegressor(n_d=17, n_a=17, n_steps=1, gamma=1.5, n_independent=2, n_shared=2, seed=0, device_name=device_name)
 
