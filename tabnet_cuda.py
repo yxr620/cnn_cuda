@@ -5,6 +5,7 @@ import time
 
 device_name = "cuda" if torch.cuda.is_available() else "cpu"
 device_name = 'cpu'
+batch_size = 512
 print(device_name)
 
 
@@ -39,13 +40,10 @@ model.fit(
     X_train=train_data,
     y_train=train_labels,
     eval_set=[(val_data, val_labels)],
-    max_epochs=10
+    max_epochs=10,
+    batch_size=batch_size
 )
+print("finish training")
 end = time.time()
 
-# model.fit(X_train=X_train, y_train=y_train, max_epochs=100)
-
-# 使用模型进行预测
-X_test = torch.randn((10, 84))
-predictions = model.predict(X_test)
-print(f"training on {device_name}: {end - start} seconds")
+print(f"training on {device_name}, batch {batch_size}: {end - start} seconds")
